@@ -3,9 +3,17 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+type Recipe = {
+  idMeal: string;
+  strMeal: string;
+  strMealThumb: string;
+  strCategory?: string;
+  strArea?: string;
+  ingredients: string[];
+};
 
 export default function IngredientsPage() {
-  const [chosenRecipes, setChosenRecipes] = useState([]);
+  const [chosenRecipes, setChosenRecipes] = useState<Recipe[]>([]);
 
   useEffect(() => {
     const selectedRecipesData = localStorage.getItem('chosenRecipes');
