@@ -1,4 +1,13 @@
 import { notFound } from 'next/navigation';
+import { NextPage } from 'next';
+
+interface RecipePageProps {
+  params: { id: string };
+}
+
+export async function generateStaticParams() {
+  return [];
+}
 
 const fetchRecipe = async (id: string) => {
   const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`);
@@ -11,7 +20,7 @@ const fetchRecipe = async (id: string) => {
   return data.meals[0] || null;
 };
 
-const RecipePage = async ({ params }: { params: { id: string } }) => {
+const RecipePage: NextPage<RecipePageProps> = async ({ params }) => {
   const recipe = await fetchRecipe(params.id);
 
   if (!recipe) {
@@ -22,10 +31,8 @@ const RecipePage = async ({ params }: { params: { id: string } }) => {
 
   for (let i = 1; i <= 20; i++) {
     if (recipe[`strIngredient${i}`] && recipe[`strMeasure${i}`]) {
-      const strMeasure = `strMeasure${i}`
-      {
-        recipe[strMeasure] && ingredients.push(`${recipe[`strIngredient${i}`]} - ${recipe[`strMeasure${i}`]}`)
-      }
+      const strMeasure = `strMeasure${i}`;
+      recipe[strMeasure] && ingredients.push(`${recipe[`strIngredient${i}`]} - ${recipe[`strMeasure${i}`]}`);
     }
   }
 
@@ -35,9 +42,9 @@ const RecipePage = async ({ params }: { params: { id: string } }) => {
         <a className='link-back' href="/">Back</a>
       </button>
 
-        <h2 className='recipe-name'>{recipe.strMeal}</h2>
-        <img src={recipe.strMealThumb} alt={recipe.strMeal} width={200} />
-      
+      <h2 className='recipe-name'>{recipe.strMeal}</h2>
+      <img src={recipe.strMealThumb} alt={recipe.strMeal} width={200} />
+    
       <div className='recipe-info'>
         <h3>{recipe.strCategory}</h3>
         <h4>{recipe.strArea}</h4>
@@ -45,10 +52,10 @@ const RecipePage = async ({ params }: { params: { id: string } }) => {
 
         <div className='recipe-ingredients'>
           <h4>Ingredients:</h4>
-            <ul>
+          <ul>
             {ingredients.map((ingredient, index) => (
               <li key={index}>{ingredient}</li>
-              ))}
+            ))}
           </ul>
         </div>
         
