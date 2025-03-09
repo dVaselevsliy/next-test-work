@@ -1,8 +1,5 @@
-'use client'
-
-import { Loader } from "@/app/components/Loader";
+// Remove 'use client'
 import { notFound } from "next/navigation";
-import { FC, useEffect, useState } from "react";
 
 interface RecipePageProps {
   params: { id: string };
@@ -10,45 +7,25 @@ interface RecipePageProps {
 
 const fetchRecipe = async (id: string) => {
   const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`);
-  
   if (!res.ok) {
     throw new Error(`HTTP Error: ${res.status}`);
   }
-
   const data = await res.json();
   return data.meals[0] || null;
 };
 
-const RecipePage: FC<RecipePageProps> = ({ params }) => {
-  const [recipe, setRecipe] = useState<any | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState<string | null>('')
-
-  useEffect(() => {
-    if (!params?.id) {
-      return notFound()
-    }
-
-    const loadRecipe = async () => {
-      try {
-        const data = await fetchRecipe(params.id!)
-        setRecipe(data)
-      } catch {
-        setErrorMessage('Loading error')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadRecipe()
-  }, [params.id])
-
+const RecipePage = async ({ params }: RecipePageProps) => {
+  if (!params?.id) {
+    return notFound();
+  }
+  
+  const recipe = await fetchRecipe(params.id);
   if (!recipe) {
-    return notFound()
+    return notFound();
   }
 
-  const ingredients: string[] = []
-
+  // Construct the ingredients list on the server
+  const ingredients: string[] = [];
   for (let i = 1; i <= 20; i++) {
     if (recipe[`strIngredient${i}`] && recipe[`strMeasure${i}`]) {
       ingredients.push(`${recipe[`strIngredient${i}`]} - ${recipe[`strMeasure${i}`]}`);
@@ -61,14 +38,6 @@ const RecipePage: FC<RecipePageProps> = ({ params }) => {
         <a className='link-back' href="/">Back</a>
       </button>
       
-      {loading && (
-        <Loader />
-      )}
-
-      {errorMessage && (
-        <h2>{errorMessage}</h2>
-      )}
-
       <h2 className='recipe-name'>{recipe.strMeal}</h2>
       <img src={recipe.strMealThumb} alt={recipe.strMeal} width={200} />
     
