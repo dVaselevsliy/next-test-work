@@ -1,9 +1,8 @@
-// Remove 'use client'
-import { notFound } from "next/navigation";
+'use client'
 
-interface RecipePageProps {
-  params: { id: string };
-}
+import { Loader } from "@/app/components/Loader";
+import { notFound, useParams } from "next/navigation";
+import { FC, useEffect, useState } from "react";
 
 const fetchRecipe = async (id: string) => {
   const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`);
@@ -14,17 +13,43 @@ const fetchRecipe = async (id: string) => {
   return data.meals[0] || null;
 };
 
-const RecipePage = async ({ params }: RecipePageProps) => {
-  if (!params?.id) {
-    return notFound();
+const RecipePage: FC = () => {
+  const { id } = useParams();
+  const [recipe, setRecipe] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id) {
+      return notFound();
+    }
+
+    const loadRecipe = async () => {
+      try {
+        const data = await fetchRecipe(id as string);
+        setRecipe(data);
+      } catch {
+        setErrorMessage('Loading error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRecipe();
+  }, [id]);
+
+  if (loading) {
+    return <Loader />;
   }
-  
-  const recipe = await fetchRecipe(params.id);
+
+  if (errorMessage) {
+    return <h2>{errorMessage}</h2>;
+  }
+
   if (!recipe) {
     return notFound();
   }
 
-  // Construct the ingredients list on the server
   const ingredients: string[] = [];
   for (let i = 1; i <= 20; i++) {
     if (recipe[`strIngredient${i}`] && recipe[`strMeasure${i}`]) {
